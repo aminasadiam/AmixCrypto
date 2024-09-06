@@ -77,7 +77,7 @@ def Train4H():
     last_data = data.iloc[-1:]  # آخرین داده‌ها برای پیش‌بینی
     future_predictions = []
     times = pd.to_datetime(data['Time'])
-    future_dates = pd.date_range(start=times.max() + pd.Timedelta(hours=4), periods=5, freq='h')
+    future_dates = pd.date_range(start=times.max() + pd.Timedelta(hours=4), periods=5, freq='4h')
 
     for i in range(5):
         prediction = model.predict(last_data[["Open","High","Low","Volume","RSI","SMA"]])

@@ -67,11 +67,6 @@ func forexFetchData(symbol string) (*ForexTimeSeries, error) {
 		}),
 	}
 
-	var timestamps []string
-	for timestamp := range data.TimeSeries {
-		timestamps = append(timestamps, timestamp)
-	}
-
 	for timestamp, values := range data.TimeSeries {
 		t, err := time.Parse("2006-01-02 15:04:05", timestamp)
 		if err != nil {
