@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -23,14 +24,12 @@ type HistoricalData struct {
 }
 
 type ForexTimeSeries struct {
-	MetaData   map[string]string
-	TimeSeries map[string]struct {
-		Open   string
-		High   string
-		Low    string
-		Close  string
-		Volume string
-	}
+	Time   time.Time
+	Open   float64
+	High   float64
+	Low    float64
+	Close  float64
+	Volume float64
 }
 
 func ForexHistoricalData(symbol string) error {
@@ -42,7 +41,7 @@ func ForexHistoricalData(symbol string) error {
 	return err
 }
 
-func forexFetchData(symbol string) (*ForexTimeSeries, error) {
+func forexFetchData(symbol string) ([]ForexTimeSeries, error) {
 	url := fmt.Sprintf("%s?function=TIME_SERIES_INTRADAY&symbol=%s&interval=60min&apikey=%s", apiURL, symbol, apiKey)
 
 	resp, err := http.Get(url)
@@ -56,43 +55,36 @@ func forexFetchData(symbol string) (*ForexTimeSeries, error) {
 		return nil, fmt.Errorf("error decoding response: %v", err)
 	}
 
-	historicalData := &ForexTimeSeries{
-		MetaData: data.MetaData,
-		TimeSeries: make(map[string]struct {
-			Open   string
-			High   string
-			Low    string
-			Close  string
-			Volume string
-		}),
-	}
+	var result []ForexTimeSeries
 
 	for timestamp, values := range data.TimeSeries {
 		t, err := time.Parse("2006-01-02 15:04:05", timestamp)
 		if err != nil {
 			continue
 		}
-		if time.Since(t).Hours() <= 720 {
-			historicalData.TimeSeries[timestamp] = struct {
-				Open   string
-				High   string
-				Low    string
-				Close  string
-				Volume string
-			}{
-				Open:   values["1. open"],
-				High:   values["2. high"],
-				Low:    values["3. low"],
-				Close:  values["4. close"],
-				Volume: values["5. volume"],
-			}
-		}
+		open, _ := strconv.ParseFloat(values["1. open"], 64)
+		low, _ := strconv.ParseFloat(values["3. low"], 64)
+		high, _ := strconv.ParseFloat(values["2. high"], 64)
+		close, _ := strconv.ParseFloat(values["4. close"], 64)
+		volume, _ := strconv.ParseFloat(values["5. volum"], 64)
+		result = append(result, ForexTimeSeries{
+			Time:   t,
+			Open:   open,
+			High:   high,
+			Low:    low,
+			Close:  close,
+			Volume: volume,
+		})
 	}
 
-	return historicalData, nil
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
+
+	return result, nil
 }
 
-func saveToCSV(data *ForexTimeSeries, filename string) error {
+func saveToCSV(data []ForexTimeSeries, filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("error creating CSV file: %v", err)
@@ -109,25 +101,25 @@ func saveToCSV(data *ForexTimeSeries, filename string) error {
 	}
 
 	var prices []float64
-	for _, v := range data.TimeSeries {
-		p, _ := strconv.ParseFloat(v.Close, 64)
-		prices = append(prices, p)
+	for _, v := range data {
+		prices = append(prices, v.Close)
 	}
 
 	rsi := talib.Rsi(prices, 14)
 	sma := talib.Sma(prices, 20)
 
 	// Write data rows
-	for timestamp, values := range data.TimeSeries {
+	for i, values := range data {
+		t := values.Time.Add(time.Hour * 3).Add(time.Minute * 30)
 		row := []string{
-			timestamp,
-			values.Open,
-			values.High,
-			values.Low,
-			values.Close,
-			values.Volume,
-			strconv.FormatFloat(rsi[0], 'f', -1, 64),
-			strconv.FormatFloat(sma[0], 'f', -1, 64),
+			t.Format("2006-01-02 15:04:05"),
+			strconv.FormatFloat(values.Open, 'f', -1, 64),
+			strconv.FormatFloat(values.High, 'f', -1, 64),
+			strconv.FormatFloat(values.Low, 'f', -1, 64),
+			strconv.FormatFloat(values.Close, 'f', -1, 64),
+			strconv.FormatFloat(values.Volume, 'f', -1, 64),
+			strconv.FormatFloat(rsi[i], 'f', -1, 64),
+			strconv.FormatFloat(sma[i], 'f', -1, 64),
 		}
 		if err := writer.Write(row); err != nil {
 			return fmt.Errorf("error writing CSV row: %v", err)

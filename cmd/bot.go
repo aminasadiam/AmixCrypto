@@ -132,12 +132,12 @@ func Execute(token string) error {
 						}(symbol)
 						time.Sleep(5 * time.Second)
 						c.Send(fmt.Sprintf("در حال تحلیل ارز %v...", symbol))
-						// result, err := exec.Command("python", "TrainModel/train.py", symbol).Output()
-						// if err != nil {
-						// 	logrus.Fatalln(err)
-						// }
-						// time.Sleep(2 * time.Second)
-						// return c.Send(fmt.Sprintf("نتیجه پیشبینی %v:\n\n\n%v", symbol, string(result)))
+						result, err := exec.Command("python", "TrainModel/forex.py", symbol).Output()
+						if err != nil {
+							logrus.Fatalln(err)
+						}
+						time.Sleep(2 * time.Second)
+						return c.Send(fmt.Sprintf("نتیجه پیشبینی فارکس ارز %v:\n\n\n%v", symbol, string(result)))
 					} else {
 						return c.Send(fmt.Sprintf("%s! Not Found", symbol))
 					}

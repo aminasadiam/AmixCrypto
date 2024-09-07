@@ -1,0 +1,10 @@
+{{ define "content" }}
+<h1>Index</h1>
+
+{{ if .IsLoggedIn }}
+<h3>Logout</h3>
+{{ else }}
+<h3>Login</h3>
+{{ end }}
+
+{{ end }}
