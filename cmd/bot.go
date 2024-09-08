@@ -107,45 +107,45 @@ func Execute(token string) error {
 		}
 	})
 
-	bot.Handle("/forex", func(c telebot.Context) error {
-		argv := c.Args()
-		if len(argv) > 1 {
-			return c.Reply("لطفا فقط اسم یک ارز را بدهید")
-		} else if len(argv) == 0 {
-			return c.Reply("لطفا نام ارز را نیز ارسال کنید")
-		} else {
-			for _, username := range AuthUsernames {
-				if username == c.Message().Sender.Username {
-					symbol := strings.ToUpper(argv[0])
-					exist, err := internal.CheckForexExist(symbol)
-					if err != nil {
-						logrus.Error(err)
-						return err
-					}
-					if exist {
-						c.Send(fmt.Sprintf("در حال دریافت اطلاعات جهت تحلیل و پیشبینی ارز %v...", symbol))
-						go func(symbol string) {
-							err = internal.ForexHistoricalData(symbol)
-							if err != nil {
-								logrus.Error(err)
-							}
-						}(symbol)
-						time.Sleep(5 * time.Second)
-						c.Send(fmt.Sprintf("در حال تحلیل ارز %v...", symbol))
-						result, err := exec.Command("python", "TrainModel/forex.py", symbol).Output()
-						if err != nil {
-							logrus.Fatalln(err)
-						}
-						time.Sleep(2 * time.Second)
-						return c.Send(fmt.Sprintf("نتیجه پیشبینی فارکس ارز %v:\n\n\n%v", symbol, string(result)))
-					} else {
-						return c.Send(fmt.Sprintf("%s! Not Found", symbol))
-					}
-				}
-			}
-			return c.Send(fmt.Sprintf("Hello, %s!, you dont have access for work with this bot. sorry!", c.Sender().Username))
-		}
-	})
+	// bot.Handle("/forex", func(c telebot.Context) error {
+	// 	argv := c.Args()
+	// 	if len(argv) > 1 {
+	// 		return c.Reply("لطفا فقط اسم یک ارز را بدهید")
+	// 	} else if len(argv) == 0 {
+	// 		return c.Reply("لطفا نام ارز را نیز ارسال کنید")
+	// 	} else {
+	// 		for _, username := range AuthUsernames {
+	// 			if username == c.Message().Sender.Username {
+	// 				symbol := strings.ToUpper(argv[0])
+	// 				exist, err := internal.CheckForexExist(symbol)
+	// 				if err != nil {
+	// 					logrus.Error(err)
+	// 					return err
+	// 				}
+	// 				if exist {
+	// 					c.Send(fmt.Sprintf("در حال دریافت اطلاعات جهت تحلیل و پیشبینی ارز %v...", symbol))
+	// 					go func(symbol string) {
+	// 						err = internal.ForexHistoricalData(symbol)
+	// 						if err != nil {
+	// 							logrus.Error(err)
+	// 						}
+	// 					}(symbol)
+	// 					time.Sleep(5 * time.Second)
+	// 					c.Send(fmt.Sprintf("در حال تحلیل ارز %v...", symbol))
+	// 					result, err := exec.Command("python", "TrainModel/forex.py", symbol).Output()
+	// 					if err != nil {
+	// 						logrus.Fatalln(err)
+	// 					}
+	// 					time.Sleep(2 * time.Second)
+	// 					return c.Send(fmt.Sprintf("نتیجه پیشبینی فارکس ارز %v:\n\n\n%v", symbol, string(result)))
+	// 				} else {
+	// 					return c.Send(fmt.Sprintf("%s! Not Found", symbol))
+	// 				}
+	// 			}
+	// 		}
+	// 		return c.Send(fmt.Sprintf("Hello, %s!, you dont have access for work with this bot. sorry!", c.Sender().Username))
+	// 	}
+	// })
 
 	bot.Start()
 	return nil

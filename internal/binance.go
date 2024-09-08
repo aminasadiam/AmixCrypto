@@ -131,8 +131,19 @@ func GetSymbolHistory(symbol, interval string) error {
 		prices = append(prices, price.Close)
 	}
 
-	rsi := talib.Rsi(prices, 14)
-	sma := talib.Sma(prices, 20)
+	var rsi []float64
+	var sma []float64
+
+	if interval == "1h" {
+		rsi = talib.Rsi(prices, 14)
+		sma = talib.Sma(prices, 21)
+	} else if interval == "4h" {
+		rsi = talib.Rsi(prices, 28)
+		sma = talib.Sma(prices, 11)
+	} else {
+		rsi = talib.Rsi(prices, 14)
+		sma = talib.Sma(prices, 21)
+	}
 
 	file, err := os.Create(fmt.Sprintf("./Data/%v.csv", symbol))
 	if err != nil {
