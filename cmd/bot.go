@@ -81,7 +81,7 @@ func Execute(token string) error {
 					}
 					if exist {
 						if !slices.Contains(Intervals, interval) {
-							return c.Reply("تایم فریم اشتباه! لطفا از مصال های زیر استفاده کنید\n1h - 4h - 1d")
+							return c.Reply("تایم فریم اشتباه! لطفا از مصال های زیر استفاده کنید\n15m - 30m - 1h - 4h - 1d")
 						}
 						c.Send(fmt.Sprintf("در حال دریافت اطلاعات جهت تحلیل و پیشبینی ارز %v...", symbol))
 						go func(symbol string) {
@@ -97,7 +97,7 @@ func Execute(token string) error {
 							logrus.Fatalln(err)
 						}
 						time.Sleep(2 * time.Second)
-						return c.Send(fmt.Sprintf("نتیجه پیشبینی %v:\n\n\n%v", symbol, string(result)))
+						return c.Send(fmt.Sprintf("نتیجه پیشبینی %v -> %v:\n\n\n%v", symbol, interval, string(result)))
 					} else {
 						return c.Send(fmt.Sprintf("%s! Not Found", symbol))
 					}

@@ -156,7 +156,7 @@ func GetSymbolHistory(symbol, interval string) error {
 
 	w.Write([]string{"Time", "Open", "High", "Low", "Close", "Volume", "RSI", "SMA"})
 	for i, b := range binanceData {
-		openTime := b.CloseTime.Format("2006-01-02 15:04:05")
+		openTime := b.CloseTime.Add(time.Second).Format("2006-01-02 15:04:05")
 		open := strconv.FormatFloat(b.Open, 'f', -1, 64)
 		high := strconv.FormatFloat(b.High, 'f', -1, 64)
 		low := strconv.FormatFloat(b.Low, 'f', -1, 64)
