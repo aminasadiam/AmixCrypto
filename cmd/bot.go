@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"slices"
 	"strings"
 	"time"
 
@@ -80,9 +79,6 @@ func Execute(token string) error {
 						return err
 					}
 					if exist {
-						if !slices.Contains(Intervals, interval) {
-							return c.Reply("تایم فریم اشتباه! لطفا از مصال های زیر استفاده کنید\n15m - 30m - 1h - 4h - 1d")
-						}
 						c.Send(fmt.Sprintf("در حال دریافت اطلاعات جهت تحلیل و پیشبینی ارز %v...", symbol))
 						go func(symbol string) {
 							err = internal.GetSymbolHistory(symbol, interval)
