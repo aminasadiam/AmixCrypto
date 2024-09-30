@@ -134,13 +134,23 @@ func GetSymbolHistory(symbol, interval string) error {
 	var rsi []float64
 	var sma []float64
 
-	if interval == "1h" {
+	switch interval {
+	case "5m":
+		rsi = talib.Rsi(prices, 9)
+		sma = talib.Sma(prices, 5)
+	case "15m":
+		rsi = talib.Rsi(prices, 11)
+		sma = talib.Sma(prices, 8)
+	case "30m":
+		rsi = talib.Rsi(prices, 14)
+		sma = talib.Sma(prices, 13)
+	case "1h":
 		rsi = talib.Rsi(prices, 14)
 		sma = talib.Sma(prices, 21)
-	} else if interval == "4h" {
+	case "4h":
 		rsi = talib.Rsi(prices, 28)
 		sma = talib.Sma(prices, 11)
-	} else {
+	case "1d":
 		rsi = talib.Rsi(prices, 14)
 		sma = talib.Sma(prices, 21)
 	}
